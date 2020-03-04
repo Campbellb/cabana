@@ -1,5 +1,9 @@
 /* eslint-disable no-param-reassign, no-bitwise */
 
+export function listToByteArray(list) {
+
+}
+
 export function signedShortToByteArray(short) {
   const byteArray = [0, 0];
   const isNegative = short < 0;
@@ -191,4 +195,51 @@ export function getHealth(state) {
   return signedShortToByteArray(state.Voltage)
     .concat(state.Current)
     .concat(getHealthFlags(state));
+}
+
+export function getCarParams(state) {
+    return state;
+}
+
+export function getLeadData(state) {
+    return signedShortToByteArray(state.dRel)
+    .concat(signedShortToByteArray(state.yRel))
+    .concat(signedShortToByteArray(state.vRel))
+    .concat(signedShortToByteArray(state.aRel))
+    .concat(signedShortToByteArray(state.vLead))
+    .concat(signedShortToByteArray(state.dPath))
+    .concat(signedShortToByteArray(state.vLat))
+}
+
+export function getLiveTracks(state) {
+    return signedShortToByteArray(state.dRel)
+    .concat(signedShortToByteArray(state.yRel))
+    .concat(signedShortToByteArray(state.vRel))
+    .concat(signedShortToByteArray(state.aRel))
+}
+
+export function getPathPlan(state) {
+    return signedShortToByteArray(state.rPoly[0])
+    .concat(signedShortToByteArray(state.rPoly[1]))
+    .concat(signedShortToByteArray(state.rPoly[2]))
+    .concat(signedShortToByteArray(state.rPoly[3]))
+    .concat(signedShortToByteArray(state.lPoly[0]))
+    .concat(signedShortToByteArray(state.lPoly[1]))
+    .concat(signedShortToByteArray(state.lPoly[2]))
+    .concat(signedShortToByteArray(state.lPoly[3]))
+    .concat(signedShortToByteArray(state.cPoly[0]))
+    .concat(signedShortToByteArray(state.cPoly[1]))
+    .concat(signedShortToByteArray(state.cPoly[2]))
+    .concat(signedShortToByteArray(state.cPoly[3]))
+}
+
+export function getRadarData(state) {
+    return signedShortToByteArray(state.LeadOne.dRel)
+    .concat(signedShortToByteArray(state.LeadOne.yRel))
+    .concat(signedShortToByteArray(state.LeadOne.vRel))
+    .concat(signedShortToByteArray(state.LeadOne.aRel))
+    .concat(signedShortToByteArray(state.LeadTwo.dRel))
+    .concat(signedShortToByteArray(state.LeadTwo.yRel))
+    .concat(signedShortToByteArray(state.LeadTwo.vRel))
+    .concat(signedShortToByteArray(state.LeadTwo.aRel))
 }

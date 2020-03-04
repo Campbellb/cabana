@@ -41,6 +41,9 @@ export default class Meta extends Component {
     this.logEventMsgFilter = this.logEventMsgFilter.bind(this);
     this.renderMessageBytes = this.renderMessageBytes.bind(this);
     this.toggleShowLogEvents = this.toggleShowLogEvents.bind(this);
+    this.onDetectDbc = this.onDetectDbc.bind(this);
+    this.showHeader = this.showHeader.bind(this);
+    this.hideHeader = this.hideHeader.bind(this);
 
     const { dbcLastSaved } = props;
 
@@ -50,7 +53,8 @@ export default class Meta extends Component {
         dbcLastSaved !== null ? this.props.dbcLastSaved.fromNow() : null,
       hoveredMessages: [],
       orderedMessageKeys: [],
-      showLogEvents: false
+      showLogEvents: false,
+      showHeader: true
     };
   }
 
@@ -166,6 +170,18 @@ export default class Meta extends Component {
     if (this.state.filterText.trim() === '') {
       this.setState({ filterText: 'Filter' });
     }
+  }
+
+  onDetectDbc(){
+      this.props.detectDbc();
+  }
+
+  showHeader(){
+      this.setState({ showHeader: true })
+  }
+
+  hideHeader(){
+      this.setState({ showHeader: false })
   }
 
   canMsgFilter(msg) {
@@ -348,51 +364,93 @@ export default class Meta extends Component {
   render() {
     return (
       <div className="cabana-meta">
-        <div className="cabana-meta-header">
-          <h5 className="cabana-meta-header-label t-capline">
-            Currently editing:
-          </h5>
-          <strong className="cabana-meta-header-filename">
-            {this.props.dbcFilename}
-          </strong>
-          {this.props.dbcLastSaved !== null ? (
-            <div className="cabana-meta-header-last-saved">
-              <p>
-                Last saved:
-                {this.lastSavedPretty()}
-              </p>
-            </div>
-          ) : null}
-          <div className={`cabana-meta-header-actions ${this.saveable()}`}>
-            <div className="cabana-meta-header-action">
-              <button onClick={this.props.showLoadDbc}>Load DBC</button>
-            </div>
-            {this.saveable() && (
-              <div className="cabana-meta-header-action">
-                <button onClick={this.props.saveLog}>Save Log</button>
+      <div className="cabana-meta-header">
+        {this.state.showHeader ?
+              <div>
+              <div onClick={this.hideHeader}>
+                <h5 className="cabana-meta-header-hide-button t-capline">- HIDE</h5>
               </div>
-            )}
-            {this.props.shareUrl ? (
-              <div
-                className="cabana-meta-header-action special-wide"
-                data-clipboard-text={this.props.shareUrl}
-                data-clipboard-action="copy"
-                ref={(ref) => (ref ? new Clipboard(ref) : null)}
-              >
-                <a
-                  className="button"
-                  href={this.props.shareUrl}
-                  onClick={(e) => e.preventDefault()}
-                >
-                  Copy Share Link
-                </a>
+              {this.props.dbcLastSaved !== null ? (
+                <div className="cabana-meta-header-last-saved">
+                  <p>
+                    Last saved:
+                    {this.lastSavedPretty()}
+                  </p>
+                </div>
+              ) : null}
+              {this.props.carFingerprint ? <h1>{this.props.carFingerprint}</h1> : ''}
+              <div className="cabana-meta-header-container">
+              {this.props.carName ?
+                  <div>
+                  <h5 className="cabana-meta-header-label t-capline">
+                    Car Name:
+                  </h5>
+                  <strong>
+                  {this.props.carName}
+                  </strong>
+                  </div>
+                  : ''}
+                  <br/>
+              {this.props.version ?
+                  <div>
+                  <h5 className="cabana-meta-header-label t-capline">
+                    Version:
+                  </h5>
+                  <strong>
+                  {this.props.version}
+                  </strong>
+                  </div>
+                  : ''}
+                  <br/>
+              <h5 className="cabana-meta-header-label t-capline">
+                Current DBC:
+              </h5>
+              <strong className="cabana-meta-header-filename">
+                {this.props.dbcFilename}
+              </strong>
               </div>
-            ) : null}
-            <div className="cabana-meta-header-action">
-              <button onClick={this.props.showSaveDbc}>Save DBC</button>
+              <br/>
+              <div className={`cabana-meta-header-actions ${this.saveable()}`}>
+                <div className="cabana-meta-header-action">
+                  <button onClick={this.onDetectDbc}>Detect DBC</button>
+                </div>
+                <div className="cabana-meta-header-action">
+                  <button onClick={this.props.showLoadDbc}>Load DBC</button>
+                </div>
+                {this.saveable() && (
+                  <div className="cabana-meta-header-action">
+                    <button onClick={this.props.saveLog}>Save Log</button>
+                  </div>
+                )}
+                {this.props.shareUrl ? (
+                  <div
+                    className="cabana-meta-header-action special-wide"
+                    data-clipboard-text={this.props.shareUrl}
+                    data-clipboard-action="copy"
+                    ref={(ref) => (ref ? new Clipboard(ref) : null)}
+                  >
+                    <a
+                      className="button"
+                      href={this.props.shareUrl}
+                      onClick={(e) => e.preventDefault()}
+                    >
+                      Copy Share Link
+                    </a>
+                  </div>
+                ) : null}
+                <div className="cabana-meta-header-action">
+                  <button onClick={this.props.showSaveDbc}>Save DBC</button>
+                </div>
+              </div>
             </div>
-          </div>
+            :
+            <div onClick={this.showHeader}>
+              <h3 className="cabana-meta-header-show-button t-capline">+ SHOW</h3>
+            </div>
+        }
         </div>
+
+
         <div className="cabana-meta-messages">
           <div className="cabana-meta-messages-header">
             <div

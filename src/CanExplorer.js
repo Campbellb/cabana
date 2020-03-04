@@ -19,6 +19,7 @@ import DBC from './models/can/dbc';
 import Meta from './components/Meta';
 import Explorer from './components/Explorer';
 import OnboardingModal from './components/Modals/OnboardingModal';
+import DetectDbcModal from './components/DetectDbcModal';
 import SaveDbcModal from './components/SaveDbcModal';
 import LoadDbcModal from './components/LoadDbcModal';
 import debounce from './utils/debounce';
@@ -67,6 +68,7 @@ export default class CanExplorer extends Component {
       showOnboarding: false,
       showLoadDbc: false,
       showSaveDbc: false,
+      showDetectDbc: false,
       showEditMessageModal: false,
       editMessageModalMessage: null,
       dbc: props.dbc ? props.dbc : new DBC(),
@@ -85,7 +87,11 @@ export default class CanExplorer extends Component {
       isGithubAuthenticated:
         props.githubAuthToken !== null && props.githubAuthToken !== undefined,
       shareUrl: null,
-      logUrls: null
+      logUrls: null,
+      carFingerprint: null,
+      steerRatio: null,
+      carName: null,
+      version: null
     };
 
     this.openDbcClient = new OpenDbc(props.githubAuthToken);
@@ -126,6 +132,8 @@ export default class CanExplorer extends Component {
 
     this.pandaReader = new Panda();
     this.pandaReader.onMessage(this.processStreamedCanMessages);
+    this.showDetectDbc = this.showDetectDbc.bind(this);
+    this.hideDetectDbc = this.hideDetectDbc.bind(this);
   }
 
   componentDidMount() {
@@ -459,7 +467,7 @@ export default class CanExplorer extends Component {
       dbcFilename,
       route,
       firstCanTime,
-      canFrameOffset
+      canFrameOffset,
     } = this.state;
     let { maxByteStateChangeCount } = this.state;
 
@@ -502,7 +510,28 @@ export default class CanExplorer extends Component {
         isFinished,
         routeInitTime,
         firstFrameTime,
+        carFingerprint,
+        steerRatio,
+        carName,
+        version
       } = e.data;
+
+      if(carFingerprint) {
+          this.setState({ carFingerprint: carFingerprint });
+      }
+
+      if(steerRatio) {
+          this.setState({ steerRatio: steerRatio });
+      }
+
+      if(carName) {
+          this.setState({ carName: carName });
+      }
+
+      if(version){
+          this.setState({ version: version });
+      }
+
       if (maxByteStateChangeCount > this.state.maxByteStateChangeCount) {
         this.setState({ maxByteStateChangeCount });
       } else {
@@ -930,6 +959,7 @@ export default class CanExplorer extends Component {
       showOnboarding,
       showLoadDbc,
       showSaveDbc,
+      showDetectDbc,
       showAddSignal,
       showEditMessageModal
     } = this.state;
@@ -937,6 +967,7 @@ export default class CanExplorer extends Component {
       showOnboarding
       || showLoadDbc
       || showSaveDbc
+      || showDetectDbc
       || showAddSignal
       || showEditMessageModal
     );
@@ -965,6 +996,15 @@ export default class CanExplorer extends Component {
   hideSaveDbc() {
     this.setState({ showSaveDbc: false });
   }
+
+  showDetectDbc(){
+      this.setState({ showDetectDbc: true })
+  }
+
+  hideDetectDbc(){
+      this.setState({ showDetectDbc: false })
+  }
+
 
   updateMessageFrame(messageId, frame) {
     const { messages } = this.state;
@@ -1342,6 +1382,11 @@ export default class CanExplorer extends Component {
             onMessageUnselected={this.onMessageUnselected}
             showLoadDbc={this.showLoadDbc}
             showSaveDbc={this.showSaveDbc}
+            detectDbc={this.showDetectDbc}
+            carFingerprint={this.state.carFingerprint}
+            steerRatio={this.state.steerRatio}
+            carName={this.state.carName}
+            version={this.state.version}
             dbcFilename={dbcFilename}
             dbcLastSaved={dbcLastSaved}
             dongleId={this.props.dongleId}
@@ -1400,6 +1445,15 @@ export default class CanExplorer extends Component {
             handleClose={this.hideLoadDbc}
             openDbcClient={this.openDbcClient}
             loginWithGithub={this.loginWithGithub()}
+          />
+        ) : null}
+
+        {this.state.showDetectDbc ? (
+          <DetectDbcModal
+            onDbcSelected={this.onDbcSelected}
+            handleClose={this.hideDetectDbc}
+            openDbcClient={this.openDbcClient}
+            carFingerprint={this.state.carFingerprint}
           />
         ) : null}
 

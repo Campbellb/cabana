@@ -54,7 +54,6 @@ export default class OpenDBC {
     }
     try {
       const response = await repo.getContents('master', '');
-
       return response.data.map((content) => content.path);
     } catch (e) {
       return [];

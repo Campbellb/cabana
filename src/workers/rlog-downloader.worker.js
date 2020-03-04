@@ -3,7 +3,6 @@
 import LogStream from '@commaai/log_reader';
 import { timeout } from 'thyming';
 import { partial } from 'ap';
-
 import { getLogPart } from '../api/rlog';
 import DbcUtils from '../utils/dbc';
 import DBC from '../models/can/dbc';
@@ -17,7 +16,11 @@ import {
   getThermalFreeSpace,
   getThermalData,
   getThermalCPU,
-  getHealth
+  getHealth,
+  getCarParams,
+  getPathPlan,
+  getLiveTracks,
+  getRadarData
 } from './rlog-utils';
 
 const DEBOUNCE_DELAY = 100;
@@ -25,6 +28,7 @@ const DEBOUNCE_DELAY = 100;
 function sendBatch(entry) {
   delete entry.batching;
   const { messages, thumbnails } = entry;
+  const { carFingerprint, steerRatio, carName, version } = entry.options;
   entry.messages = {};
   entry.thumbnails = [];
 
@@ -51,6 +55,10 @@ function sendBatch(entry) {
     maxByteStateChangeCount,
     routeInitTime,
     firstFrameTime,
+    carFingerprint,
+    steerRatio,
+    carName,
+    version
   });
 
   if (entry.ended) {
@@ -168,6 +176,9 @@ async function loadData(entry) {
       if (entry.options.routeInitTime == null) {
         entry.options.routeInitTime = msg.LogMonoTime / 1e9;
       }
+      if(msg.InitData.Version){
+        entry.options.version = msg.InitData.Version
+      }
     } else if (entry.part === 0 && 'Frame' in msg) {
       if (entry.options.firstFrameTime == null) {
         entry.options.firstFrameTime = msg.Frame.TimestampEof / 1e9;
@@ -252,7 +263,131 @@ async function loadData(entry) {
       const monoTime = msg.LogMonoTime / 1000000000 - entry.options.routeInitTime;
       const data = new Uint8Array(msg.Thumbnail.Thumbnail);
       entry.thumbnails.push({ data, monoTime });
-    } else {
+    } else if ('CarParams' in msg) {
+        const monoTime = msg.LogMonoTime / 1000000000 - entry.options.routeInitTime;
+        entry.options.steerRatio = msg.CarParams.SteerRatio;
+        entry.options.carFingerprint = msg.CarParams.CarFingerprint;
+        entry.options.carName = msg.CarParams.CarName;
+        insertEventData(
+          'CarParams',
+          'SteerRatio',
+          entry,
+          monoTime,
+          partial(getThermalFreeSpace, msg.CarParams.SteerRatio)
+        );
+    } else if ('PathPlan' in msg) {
+        const monoTime = msg.LogMonoTime / 1000000000;
+        insertEventData(
+          'PathPlan',
+          'RPoly',
+          entry,
+          monoTime,
+          partial(getThermalFreeSpace, msg.PathPlan)
+        );
+        insertEventData(
+          'PathPlan',
+          'LPoly',
+          entry,
+          monoTime,
+          partial(getThermalFreeSpace, msg.PathPlan)
+        );
+        insertEventData(
+          'PathPlan',
+          'CPoly',
+          entry,
+          monoTime,
+          partial(getThermalFreeSpace, msg.PathPlan)
+        );
+    }else if ('LiveTracks' in msg) {
+        const monoTime = msg.LogMonoTime / 1000000000;
+        insertEventData(
+          'LiveTracks',
+          'dRel',
+          entry,
+          monoTime,
+          partial(getLiveTracks, msg.LiveTracks)
+        );
+        insertEventData(
+          'LiveTracks',
+          'yRel',
+          entry,
+          monoTime,
+          partial(getLiveTracks, msg.LiveTracks)
+        );
+        insertEventData(
+          'LiveTracks',
+          'vRel',
+          entry,
+          monoTime,
+          partial(getLiveTracks, msg.LiveTracks)
+        );
+        insertEventData(
+          'LiveTracks',
+          'aRel',
+          entry,
+          monoTime,
+          partial(getLiveTracks, msg.LiveTracks)
+        );
+    } else if ('RadarData' in msg){
+        const monoTime = msg.LogMonoTime / 1000000000;
+        insertEventData(
+          'RadarData:LeadOne',
+          'dRel',
+          entry,
+          monoTime,
+          partial(getRadarData, msg.RadarData)
+        );
+        insertEventData(
+          'RadarData:LeadOne',
+          'yRel',
+          entry,
+          monoTime,
+          partial(getRadarData, msg.RadarData)
+        );
+        insertEventData(
+          'RadarData:LeadOne',
+          'vRel',
+          entry,
+          monoTime,
+          partial(getRadarData, msg.RadarData)
+        );
+        insertEventData(
+          'RadarData:LeadOne',
+          'aRel',
+          entry,
+          monoTime,
+          partial(getRadarData, msg.RadarData)
+        );
+        insertEventData(
+          'RadarData:LeadTwo',
+          'dRel',
+          entry,
+          monoTime,
+          partial(getRadarData, msg.RadarData)
+        );
+        insertEventData(
+          'RadarData:LeadTwo',
+          'yRel',
+          entry,
+          monoTime,
+          partial(getRadarData, msg.RadarData)
+        );
+        insertEventData(
+          'RadarData:LeadTwo',
+          'vRel',
+          entry,
+          monoTime,
+          partial(getRadarData, msg.RadarData)
+        );
+        insertEventData(
+          'RadarData:LeadTwo',
+          'aRel',
+          entry,
+          monoTime,
+          partial(getRadarData, msg.RadarData)
+        );
+    }
+    else {
       // console.log(Object.keys(msg));
       return;
     }

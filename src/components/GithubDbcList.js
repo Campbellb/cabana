@@ -33,8 +33,8 @@ export default class GithubDbcList extends Component {
 
   componentDidMount() {
     this.props.openDbcClient.list(this.props.repo).then((paths) => {
-      paths = paths.filter((path) => path.indexOf('.dbc') !== -1);
-      this.setState({ paths });
+      let filtered_paths = paths.filter((path) => path.endsWith('.dbc'));
+      this.setState({ paths: filtered_paths });
     });
   }
 

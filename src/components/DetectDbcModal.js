@@ -5,27 +5,25 @@ import cx from 'classnames';
 import DBC from '../models/can/dbc';
 import OpenDbc from '../api/OpenDbc';
 import Modal from './Modals/baseModal';
-import GithubDbcList from './GithubDbcList';
-import DbcUpload from './DbcUpload';
+// import GithubDbcList from './GithubDbcList';
+import DetectDbcList from './DetectDbcList';
 
-export default class LoadDbcModal extends Component {
+export default class DetectDbcModal extends Component {
   static propTypes = {
     handleClose: PropTypes.func.isRequired,
     onDbcSelected: PropTypes.func.isRequired,
     openDbcClient: PropTypes.instanceOf(OpenDbc).isRequired,
-    loginWithGithub: PropTypes.element.isRequired
+    carFingerprint: PropTypes.string.isRequired,
   };
 
   constructor(props) {
     super(props);
     this.state = {
-      tab: 'OpenDBC',
-      tabs: ['OpenDBC', 'GitHub', 'Upload', 'Specify Repo'],
+      tab: 'Detect DBC',
+      tabs: ['Detect DBC'],
       dbc: null,
       dbcSource: null,
-      userOpenDbcRepo: null,
-      repoInput: 'commaai/opendbc',
-      submittedRepoInput: ''
+      userOpenDbcRepo: null
     };
 
     this.onDbcLoaded = this.onDbcLoaded.bind(this);
@@ -53,14 +51,14 @@ export default class LoadDbcModal extends Component {
     }
   }
 
-  repoInput(e){
-    let query = e.target.value
-    this.setState({ repoInput: query});
-  }
-
-  submitRepoInput() {
-      this.setState({ repoInput: ''});
-      this.setState({ submittedRepoInput: this.state.repoInput })
+  detectPathQuery(carFingerprint){
+      if(carFingerprint){
+          if(carFingerprint.toLowerCase().includes("toyota")){
+              return "Toyota"
+          }else if(carFingerprint.includes("Ford")){
+              return "Ford"
+          }
+      }
   }
 
   renderTabNavigation() {
@@ -83,52 +81,15 @@ export default class LoadDbcModal extends Component {
 
   renderTabContent() {
     const { tab } = this.state;
-    if (tab === 'OpenDBC') {
+    if (tab === 'Detect DBC') {
       return (
-        <GithubDbcList
+        <DetectDbcList
           onDbcLoaded={this.onDbcLoaded}
           repo="commaai/opendbc"
           openDbcClient={this.props.openDbcClient}
+          carFingerprint={this.props.carFingerprint}
         />
       );
-    }
-    if (tab === 'GitHub') {
-      if (!this.props.openDbcClient.hasAuth()) {
-        return this.props.loginWithGithub;
-      }
-      if (this.state.userOpenDbcRepo === null) {
-        return <div>Fork it</div>;
-      }
-      return (
-        <GithubDbcList
-          onDbcLoaded={this.onDbcLoaded}
-          repo={this.state.userOpenDbcRepo}
-          openDbcClient={this.props.openDbcClient}
-        />
-      );
-    }
-    if (tab === 'Specify Repo') {
-      return (
-        <div>
-            <input type="text" placeholder="Username/Repo Name" onChange={(e) => this.repoInput(e)}/>
-            <br/>
-            <br/>
-            <button type="submit" onClick={() => this.submitRepoInput()}>Submit</button>
-            <br/>
-            {this.state.submittedRepoInput === '' ?
-            ''
-            :
-            <GithubDbcList
-              onDbcLoaded={this.onDbcLoaded}
-              repo={this.state.submittedRepoInput}
-              openDbcClient={this.props.openDbcClient}
-            />
-        }
-        </div>
-      );
-    }
-    if (tab === 'Upload') {
-      return <DbcUpload onDbcLoaded={this.onDbcLoaded} />;
     }
   }
 
@@ -148,8 +109,7 @@ export default class LoadDbcModal extends Component {
   render() {
     return (
       <Modal
-        title="Load DBC File"
-        subtitle="Modify an existing DBC file with Cabana"
+        title="Detect DBC File"
         handleClose={this.props.handleClose}
         navigation={this.renderTabNavigation()}
         actions={this.renderActions()}

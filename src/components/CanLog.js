@@ -305,7 +305,7 @@ export default class CanLog extends Component {
             itemRenderer={this.renderLogListItem}
             itemsRenderer={this.renderLogList}
             length={this.listLength()}
-            pageSize={50}
+            pageSize={2}
             updateWhenThisValueChanges={this.props.messageIndex}
             type="variable"
           />
